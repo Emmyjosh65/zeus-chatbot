@@ -1,0 +1,19 @@
+name: notify-nuxt-website
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 4.x
+      - 3.x
+    paths:
+      - "docs/**"
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-slim
+    steps:
+      - name: trigger nuxt website deployment
+        run: curl "${{ secrets.NUXT_WEBSITE_WEBHOOK_URL }}"

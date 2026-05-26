@@ -1,0 +1,39 @@
+import type { DefineSetupFnComponent, defineAsyncComponent } from 'vue'
+import { createVNode, defineComponent, onErrorCaptured } from 'vue'
+
+import { createError } from '../composables/error'
+
+// @ts-expect-error virtual file
+import { islandComponents } from '#build/components.islands.mjs'
+
+interface IslandRendererProps {
+  context: { name: string, props?: Record<string, any> }
+}
+
+const IslandRenderer = defineComponent({
+  name: 'IslandRenderer',
+  props: {
+    context: {
+      type: Object as () => { name: string, props?: Record<string, any> },
+      required: true,
+    },
+  },
+  setup (props) {
+    const component = islandComponents[props.context.name] as ReturnType<typeof defineAsyncComponent>
+
+    if (!component) {
+      throw createError({
+        status: 404,
+        statusText: `Island component not found: ${props.context.name}`,
+      })
+    }
+
+    onErrorCaptured((e) => {
+      console.log(e)
+    })
+
+    return () => createVNode(component || 'span', { ...props.context.props, 'data-island-uid': '' })
+  },
+}) as unknown as DefineSetupFnComponent<IslandRendererProps>
+
+export default IslandRenderer
